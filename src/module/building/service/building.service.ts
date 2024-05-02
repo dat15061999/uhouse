@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { Building } from '@model';
+import { Building, Room } from '@model';
 import { BuildingRepository, RoomRepository } from '@repository';
 import { BaseService } from '@shared';
 
@@ -20,7 +20,6 @@ export class BuildingService extends BaseService<Building> {
     this.listJoin = ['buildingContent', 'buildingAddress'];
     this.listInnerJoin = [{ key: 'rooms', condition: 'isPublic = TRUE' }];
     // this.listInnerJoin = [];
-
   }
 
   /**
@@ -31,7 +30,7 @@ export class BuildingService extends BaseService<Building> {
   // async findOne(): Promise<any> {
   //   return this.repo.getBuildings();
   // }
-  async findByRoomId(id: number) {
+  async findByRoomId(id: number): Promise<Room | null> {
     return this.rooms.findOne({ where: { id } });
   }
 }

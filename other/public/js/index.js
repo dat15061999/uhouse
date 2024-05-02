@@ -535,21 +535,25 @@ const filter = () => {
 }
 
 function togglePriceRadio() {
-    document.getElementById("priceRange").addEventListener("click", function (event) {
-        event.preventDefault();
-        var priceRadio = document.getElementById("pricetable");
-        if (priceRadio.style.display === "none") {
-            priceRadio.style.display = "block";
-            priceRadio.style.top = "50px";
-        } else {
-            priceRadio.style.display = "none";
-            priceRadio.style.display = "none";
-        }
-    });
+    const value = document.getElementById("priceRange");
+    if (value) {
+        value.addEventListener("click", function (event) {
+            event.preventDefault();
+            var priceRadio = document.getElementById("pricetable");
+            if (priceRadio.style.display === "none") {
+                priceRadio.style.display = "block";
+                priceRadio.style.top = "50px";
+            } else {
+                priceRadio.style.display = "none";
+                priceRadio.style.display = "none";
+            }
+        });
+    }
+
 }
 
 A();
-C();
 changeAddressSelect();
 filter();
 togglePriceRadio();
+C();

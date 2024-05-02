@@ -109,7 +109,7 @@ export class AuthService extends BaseService<User> {
       this.update(user.id!, { otp: null });
       this.schedulerRegistry.deleteCronJob(name);
     });
-    this.schedulerRegistry.addCronJob(name, job as any);
+    this.schedulerRegistry.addCronJob(name, job);
     job.start();
 
     return user.otp;

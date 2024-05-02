@@ -1,5 +1,4 @@
-import { Get, Controller, Render, Query, Param, UseInterceptors, Body, ParseIntPipe } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { Get, Controller, Render, Query, Param, ParseIntPipe } from '@nestjs/common';
 
 // import { I18nContext } from 'nestjs-i18n';
 // import { FastifyReply } from 'fastify';
@@ -9,10 +8,8 @@ import { Repository } from 'typeorm';
 
 import { BuildingService, RoomService } from '@service';
 import { DataDto, PostDto } from '@dto';
-import { CacheInterceptor } from '@nestjs/cache-manager';
-import { QueryExpressionMap } from 'typeorm/query-builder/QueryExpressionMap';
-import dayjs, { Dayjs } from 'dayjs';
 import { getTheDate, PaginationQueryDto } from '@shared';
+import { Building, Room } from '@model';
 // import { query } from 'winston';
 // import { Building } from '@model';
 
@@ -28,54 +25,63 @@ export class AppController {
 
   @Get('')
   @Render('pages/home/index')
-  async root(@Query('address') address: string): Promise<any> {
-    const [bu] = await this.buildingService.findAll(
-      {
-        page: 1,
-        perPage: 10,
-        filter: `{"buildingAddress.province":"${address ? address : ""}"}`
-      });
+  async root(
+    @Query('address') address: string,
+  ): Promise<{ bu: Building[] | null; uniqueProvinces: string[] | null; data: Record<string, any> }> {
+    const [bu] = await this.buildingService.findAll({
+      page: 1,
+      perPage: 10,
+      filter: `{"buildingAddress.province":"${address ? address : ''}"}`,
+    });
     const [ex] = await this.buildingService.findAll({ perPage: 100 });
-    const uniqueProvinces = [...new Set(ex.map(building => building.buildingAddress.province))];
+    const uniqueProvinces = [...new Set(ex.map((building) => building.buildingAddress.province))];
     const data = {
-      items: [{
-        imageSrc: "/images/home/swpier1.png",
-        title: "Các xu hướng lựa chọn thiết kế căn hộ lý tưởng năm 2022"
-      }, {
-        imageSrc: "/images/home/swpier2.png",
-        title: "Những căn hộ đơn giản hiện đại có phải là xu hướng mới?"
-      }, {
-        imageSrc: "/images/home/swpier2.png",
-        title: "Những căn hộ đơn giản hiện đại có phải là xu hướng mới?"
-      },
-      {
-        imageSrc: "/images/home/swpier3.png",
-        title: "Phong cách thiết kế căn hộ nào sẽ là xu hướng năm 2023?"
-      }],
-      baners: [{
-        title: "Uhouse",
-        Content: "Mang lại nhiều tiện ích cho khách thuê",
-        imageSrc: "/images/home/property-1.png"
-      }, {
-        title: "Uhouse",
-        Content: " Nền tảng quản lý vận hành tòa nhà tiên tiến",
-        imageSrc: "/images/home/property-1.png"
-      }, {
-        title: "Uhouse",
-        Content: "Tiết kiệm chi phí hiệu quả",
-        imageSrc: "/images/home/property-1.png"
-      }]
+      items: [
+        {
+          imageSrc: '/images/home/swpier1.png',
+          title: 'Các xu hướng lựa chọn thiết kế căn hộ lý tưởng năm 2022',
+        },
+        {
+          imageSrc: '/images/home/swpier2.png',
+          title: 'Những căn hộ đơn giản hiện đại có phải là xu hướng mới?',
+        },
+        {
+          imageSrc: '/images/home/swpier2.png',
+          title: 'Những căn hộ đơn giản hiện đại có phải là xu hướng mới?',
+        },
+        {
+          imageSrc: '/images/home/swpier3.png',
+          title: 'Phong cách thiết kế căn hộ nào sẽ là xu hướng năm 2023?',
+        },
+      ],
+      baners: [
+        {
+          title: 'Uhouse',
+          Content: 'Mang lại nhiều tiện ích cho khách thuê',
+          imageSrc: '/images/home/property-1.png',
+        },
+        {
+          title: 'Uhouse',
+          Content: ' Nền tảng quản lý vận hành tòa nhà tiên tiến',
+          imageSrc: '/images/home/property-1.png',
+        },
+        {
+          title: 'Uhouse',
+          Content: 'Tiết kiệm chi phí hiệu quả',
+          imageSrc: '/images/home/property-1.png',
+        },
+      ],
     };
     return {
-      bu, data, uniqueProvinces
+      bu,
+      data,
+      uniqueProvinces,
     };
   }
 
   @Get('/detail/:id')
   @Render('pages/detail/index')
-  async detail(
-    @Param('id') id: string
-  ): Promise<any> {
+  async detail(@Param('id') id: string): Promise<{ bui: Building | null }> {
     const bui = await this.buildingService.findOne(id, []);
     return {
       bui,
@@ -85,8 +91,8 @@ export class AppController {
   @Get('/detail1')
   @Render('pages/detail1/index')
   async detail1(
-    @Query() paginableParams: PaginationQueryDto
-  ): Promise<any> {
+    @Query() paginableParams: PaginationQueryDto,
+  ): Promise<{ bu: Building[] | null; uniqueProvinces: string[] | null; data: Record<string, any> }> {
     let filterObject: any = {};
     const filterParam = paginableParams.filter;
     if (filterParam) {
@@ -96,175 +102,184 @@ export class AppController {
 
     const [bu] = await this.buildingService.findAll({
       ...paginableParams,
-      filter: `{"buildingAddress.province":"${province ? province : ""}",
-    "type":"${type ? type : ""}",
-    "updated_at":"${year ? year : ""}",
-    "rooms.acreage":"${acreage ? acreage : ""}",
-    "rooms.bedroomTotal":"${bedroomTotal ? bedroomTotal : ""}",
-    "rooms.price":"${price !== "/" && price ? price : ""}"}
+      filter: `{"buildingAddress.province":"${province ? province : ''}",
+    "type":"${type ? type : ''}",
+    "updated_at":"${year ? year : ''}",
+    "rooms.acreage":"${acreage ? acreage : ''}",
+    "rooms.bedroomTotal":"${bedroomTotal ? bedroomTotal : ''}",
+    "rooms.price":"${price !== '/' && price ? price : ''}"}
     `,
     });
 
-    const uniqueProvinces = [...new Set(bu.map(building => building.buildingAddress.province))];
+    const uniqueProvinces = [...new Set(bu.map((building) => building.buildingAddress.province))];
 
     const data = {
-      items: [{
-        name: "An Khánh",
-        size: 27,
-        address: "261/37/1D Chu Văn An, phường 12, Quận Bình Thạnh, TP.HCM",
-        price: 3.5
-      }, {
-        name: "An Khánh",
-        size: 27,
-        address: "261/37/1D Chu Văn An, phường 12, Quận Bình Thạnh, TP.HCM",
-        price: 3.5
-      }, {
-        name: "An Khánh",
-        size: 27,
-        address: "261/37/1D Chu Văn An, phường 12, Quận Bình Thạnh, TP.HCM",
-        price: 3.5
-      },
-      {
-        name: "An Khánh",
-        size: 27,
-        address: "261/37/1D Chu Văn An, phường 12, Quận Bình Thạnh, TP.HCM",
-        price: 3.5
-      }],
       hirePrice: [
         {
-          content: "Tăng dần",
-          value: "ASC"
+          content: 'Tăng dần',
+          value: 'ASC',
         },
         {
-          content: "Giảm dần",
-          value: "DESC"
+          content: 'Giảm dần',
+          value: 'DESC',
         },
       ],
       roomAcreageArray: [
         {
-          content: "<30m2", value: "0/30"
+          content: '<30m2',
+          value: '0/30',
         },
         {
-          content: "30m2-50m2", value: "30/50"
+          content: '30m2-50m2',
+          value: '30/50',
         },
         {
-          content: "50m2-60m2", value: "50/60"
+          content: '50m2-60m2',
+          value: '50/60',
         },
         {
-          content: "60m2-70m2", value: "60/70"
+          content: '60m2-70m2',
+          value: '60/70',
         },
         {
-          content: "70m2-80m2", value: "70/80"
+          content: '70m2-80m2',
+          value: '70/80',
         },
         {
-          content: "80m2-90m2", value: "80/90"
+          content: '80m2-90m2',
+          value: '80/90',
         },
         {
-          content: "100m2-1000m2", value: "100/1000"
+          content: '100m2-1000m2',
+          value: '100/1000',
         },
       ],
       roomArrayYear: [
         {
-          content: "Cách đây 1 ngày", value: `${getTheDate(1)}`
+          content: 'Cách đây 1 ngày',
+          value: `${getTheDate(1)}`,
         },
         {
-          content: "Cách đây 3 ngày", value: `${getTheDate(3)}`
+          content: 'Cách đây 3 ngày',
+          value: `${getTheDate(3)}`,
         },
         {
-          content: "Cách đây 7 ngày", value: `${getTheDate(7)}`
+          content: 'Cách đây 7 ngày',
+          value: `${getTheDate(7)}`,
         },
         {
-          content: "Cách đây 15 ngày", value: `${getTheDate(15)}`
+          content: 'Cách đây 15 ngày',
+          value: `${getTheDate(15)}`,
         },
         {
-          content: "Cách đây 30 ngày", value: `${getTheDate(30)}`
+          content: 'Cách đây 30 ngày',
+          value: `${getTheDate(30)}`,
         },
         {
-          content: "Cách đây 60 ngày", value: `${getTheDate(60)}`
+          content: 'Cách đây 60 ngày',
+          value: `${getTheDate(60)}`,
         },
       ],
       roomBedroomTotal: [
         {
-          content: 0, value: 0
+          content: 0,
+          value: 0,
         },
         {
-          content: 1, value: 1
+          content: 1,
+          value: 1,
         },
         {
-          content: 2, value: 2
+          content: 2,
+          value: 2,
         },
         {
-          content: 3, value: 3
+          content: 3,
+          value: 3,
         },
         {
-          content: 4, value: 4
+          content: 4,
+          value: 4,
         },
         {
-          content: 5, value: 5
+          content: 5,
+          value: 5,
         },
         {
-          content: 6, value: 6
+          content: 6,
+          value: 6,
         },
       ],
       roomTypeArray: [
         {
-          content: "Căn hộ dịch vụ", value: "CHDV"
+          content: 'Căn hộ dịch vụ',
+          value: 'CHDV',
         },
         {
-          content: "Motel", value: "MOTEL"
+          content: 'Motel',
+          value: 'MOTEL',
         },
         {
-          content: "Hotel", value: "HOTEL"
+          content: 'Hotel',
+          value: 'HOTEL',
         },
         {
-          content: "Phòng trọ", value: "MEZZANINE_ROOM"
+          content: 'Phòng trọ',
+          value: 'MEZZANINE_ROOM',
         },
         {
-          content: "Chung cư Mini", value: "STUDIO_ROOM"
+          content: 'Chung cư Mini',
+          value: 'STUDIO_ROOM',
         },
       ],
       radioPrice: [
         {
-          content: "Tất cả", value: ""
+          content: 'Tất cả',
+          value: '',
         },
         {
-          content: "1", value: 1000000
+          content: '1',
+          value: 1000000,
         },
         {
-          content: "5", value: 5000000
+          content: '5',
+          value: 5000000,
         },
         {
-          content: "7", value: 7000000
+          content: '7',
+          value: 7000000,
         },
         {
-          content: "10", value: 10000000
+          content: '10',
+          value: 10000000,
         },
         {
-          content: "30", value: 30000000
-        }
-      ]
+          content: '30',
+          value: 30000000,
+        },
+      ],
     };
 
     return {
-      bu, data, uniqueProvinces,
+      bu,
+      data,
+      uniqueProvinces,
     };
   }
 
   @Get('/detail2/:id')
   @Render('pages/detail2/index')
-  async detail2(@Param('id', ParseIntPipe) id: number): Promise<any> {
+  async detail2(@Param('id', ParseIntPipe) id: number): Promise<{ room: Room | null; bu: Building | null }> {
     const room = await this.buildingService.findByRoomId(id);
-    let bu;
+    let bu: any;
     if (room) {
       bu = await this.buildingService.findOne(room.buildingId.toString(), []);
     }
-    console.log(room);
     return {
       room,
-      bu
+      bu,
     };
   }
-
 
   // @Get('/en')
   // @Render('index')
@@ -556,36 +571,36 @@ export class AppController {
   //   };
   // }
 }
-interface ICommon {
-  title: string;
-  lang: string;
-  isEnglish: boolean;
-  language: object;
-  parameter: object;
-  partner: DataDto[];
-}
-interface IHome extends ICommon {
-  urlLang: string;
-  mission: DataDto[];
-  services: DataDto[];
-  value: DataDto[];
-  JSON: {
-    member: DataDto[];
-  };
-}
-interface IListPost extends ICommon {
-  urlLang: string;
-  post: PostDto[];
-}
-interface IPost extends ICommon {
-  urlLang: string;
-  post: PostDto[];
-  detail: object;
-}
+// interface ICommon {
+//   title: string;
+//   lang: string;
+//   isEnglish: boolean;
+//   language: object;
+//   parameter: object;
+//   partner: DataDto[];
+// }
+// interface IHome extends ICommon {
+//   urlLang: string;
+//   mission: DataDto[];
+//   services: DataDto[];
+//   value: DataDto[];
+//   JSON: {
+//     member: DataDto[];
+//   };
+// }
+// interface IListPost extends ICommon {
+//   urlLang: string;
+//   post: PostDto[];
+// }
+// interface IPost extends ICommon {
+//   urlLang: string;
+//   post: PostDto[];
+//   detail: object;
+// }
 
-interface IAbout extends ICommon {
-  urlLang: string;
-  JSON: {
-    detail: DataDto[];
-  };
-}
+// interface IAbout extends ICommon {
+//   urlLang: string;
+//   JSON: {
+//     detail: DataDto[];
+//   };
+// }

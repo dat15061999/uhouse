@@ -7,4 +7,4 @@ import { BuildingRepository, RoomRepository } from '@repository';
   providers: [BuildingRepository, RoomRepository, BuildingService, RoomService],
   exports: [BuildingService, RoomService],
 })
-export class BuildingModule { }
+export class BuildingModule {}
